@@ -35,3 +35,18 @@ Exact method of programming JL1 board at this time is beyond the scope of presen
 # FYI
 Provided firmware supporting laser cross pointer that is included with JL1 frame (missing from other JL* frames.) Laser pointer driver is tied to M7 and M8 commands to turn ON and M9 to turn off. LaserGRBL framing code (UI button edit) can be easily modified to support that pointer, including custom offsets. Others may chose to use that output for air assist or cooling. Just for you to know: that laser pointer output is supported and available.
 
+# Wireless mod
+It is not essential but still convenient to operate this machine wirelessly. One slow weekend I got inspiration to try to make my JL1 wireless. Need a few pieces to make it work: STM firmware talking on second serial port, ESP firmware to make wireless-to-serial bridge, and maybe convenience firmware to make easy acces to ESP through existing USB.
+
+First I need to recompile firmware to move STM serial from USART 1 to 2. Additionally need to drive Enable pin of ESP high. "JL1 V2_2 GRBL COM2.hex" is identical to original JL1 V2 in every way except pull-up ESP enable and different serial interface.
+For wireless_to_serial I use ESP-LINK https://github.com/jeelabs/esp-link. Installation of ESP link is beyond scope of this work as there are many guides. If you decided to use ESP-LINK: after completing obvious installation and configuration - go to last tab and disable logging, as these messages will pollute GRBL communication. Nothing else really. Just connect to it over Telnet or Web-socket or whatever. ESP-link is not the only ESP wireless to serial bridge, there are many. Even Arduino has library that can be easily customized and adopted. Make your own choise. For me ESP-LINK just works.
+And the last one, convenience: I wrote quick utility Arduino code for transparent serial bridge to access SEP on existing USB/serial interface. Makes flashing ESP very easy. You still may prefer to add one wire to enable ESP flashing mode - see image.png above. It connects existing button to ESP pin to enable flashing.
+
+Originally I tap directly to ESP pins to flash ESP12F module. This is less than convenient and task not for everyone. Trying to access ESP programmatically with transparent serial pipe connecting STM UART 1 and 2 was not very successful: I was able to start flashing ESP but never able to complete it. Something about very specific timing and changing baud rate and probably buffer overflow. Eventually I made a bit_repeater that is protocol agnostic, has minimal latency and works just fine for 115200 baud UART. See attached Arduino sketch. You may recompile it yourself or use precompiled binary.
+
+You still need ST_Link dongle to flash STM (easy way) or flash over serial (hard way. It works, confirmed, but to me not worth $10 to struggle). Flash STM with "bit repeater" first, then flash ESP with whatever wireless to serial you chose, then flash STM again with GRBL COM2  firmware.
+To flash ESP - do the mod - add wire to button. To flash ESP - keep 12V off, start flashing, press and hold button, apply 12V power, when see programming started - you may let button go.
+
+Reminder, apparently me and other folks done it: this probably will be done with board out of enclosure and board disconnected form all harnesses. Power switchis on front panel, your board is not dead, but power switch is not ON. Take panel with board or use jumper in the power switch connector. And once again: ST_Link use 3.3V power pin, never 5V.
+
+Enjoy one less wire in the clutter!
